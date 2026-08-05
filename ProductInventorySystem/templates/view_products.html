@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Products - Product Inventory System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">📦 Inventory System<span style="font-size:0.7rem; font-weight:400; opacity:0.75; margin-left:0.6rem;">{{ current_username }} &middot; {{ current_role }}</span></div>
+        <nav>
+            <a href="{{ url_for('index') }}">Dashboard</a>
+            <a href="{{ url_for('view_products') }}">Products</a>
+            {% if is_staff %}<a href="{{ url_for('add_product') }}">Add Product</a>{% endif %}
+            <a href="{{ url_for('search_product') }}">Search</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="page-header">
+            <h1>All Products</h1>
+            {% if is_staff %}<a href="{{ url_for('add_product') }}" class="btn">+ Add Product</a>{% endif %}
+        </div>
+
+        {% if products %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Supplier</th>
+                    {% if is_staff %}<th>Actions</th>{% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in products %}
+                <tr>
+                    <td>{{ p['id'] }}</td>
+                    <td>{{ p['name'] }}</td>
+                    <td>{{ p['category'] }}</td>
+                    <td>
+                        {% if p['quantity'] <= 20 %}
+                            <span class="badge badge-low">{{ p['quantity'] }}</span>
+                        {% else %}
+                            <span class="badge badge-ok">{{ p['quantity'] }}</span>
+                        {% endif %}
+                    </td>
+                    <td>₹{{ "%.2f"|format(p['price']) }}</td>
+                    <td>{{ p['supplier'] or '—' }}</td>
+                    {% if is_staff %}
+                    <td class="actions-cell">
+                        <a href="{{ url_for('edit_product', product_id=p['id']) }}" class="btn btn-secondary btn-small">Edit</a>
+                        <form method="POST" action="{{ url_for('delete_product', product_id=p['id']) }}" onsubmit="return confirm('Delete {{ p['name'] }}?');" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                        </form>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="card empty-state">
+            <p>No products in inventory yet.</p>
+            {% if is_staff %}<a href="{{ url_for('add_product') }}" class="btn">Add your first product</a>{% endif %}
+        </div>
+        {% endif %}
+
+        <div class="footer">Product Inventory System &mdash; built with Flask</div>
+    </div>
+</body>
+</html>
